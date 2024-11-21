@@ -1,24 +1,6 @@
 pipeline {
     agent any
     stages {
-        stage('Checkout') {
-            steps {
-                git branch: 'main', url: 'https://github.com/DianaLBS/out.git'
-            }
-        }
-
-        stage('Build') {
-            steps {
-                sh 'mvn clean install'
-            }
-        }
-
-        stage('Test') {
-            steps {
-                sh 'mvn test'
-                sh 'mvn verify'
-            }
-        }
 
         stage('Build Docker image') {
             steps {
@@ -30,6 +12,14 @@ pipeline {
         stage('Deploy Docker image') {
             steps {
                 sh 'docker run -d --name outcome-curr-mgmt -p 9092:9092 outcome-curr-mgmt:latest'
+            }
+        }
+
+
+        stage('Test') {
+            steps {
+                sh 'mvn test'
+                sh 'mvn verify'
             }
         }
 
