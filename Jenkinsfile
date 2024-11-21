@@ -17,12 +17,13 @@ pipeline {
             steps {
                 sh 'mvn test'
                 sh 'mvn verify'
-            } // Aquí cerramos correctamente la etapa "Test"
+            }
         }
 
         stage('Build Docker image') {
             steps {
-                sh 'docker build -t outcome-curr-mgmt:latest .'
+                sh 'docker build -t outcome-curr-mgmt:latest -f Dockerfile .'
+
             }
         }
 
