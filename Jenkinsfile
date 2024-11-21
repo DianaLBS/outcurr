@@ -18,6 +18,7 @@ pipeline {
             steps {
                 sh 'mvn test'
                 sh 'mvn verify'
+            } // Aquí cerramos correctamente la etapa "Test"
         }
 
         stage('Build Docker image') {
@@ -34,7 +35,7 @@ pipeline {
 
         stage('Reports') {
             steps {
-                  archiveArtifacts artifacts: 'outcome-curr-mgmt-coverage/target/site/jacoco-aggregate/**/*', allowEmptyArchive: true
+                archiveArtifacts artifacts: 'outcome-curr-mgmt-coverage/target/site/jacoco-aggregate/**/*', allowEmptyArchive: true
             }
         }
     }
