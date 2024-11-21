@@ -34,8 +34,7 @@ pipeline {
 
         stage('Reports') {
             steps {
-                  archiveArtifacts artifacts: 'outcome-curr-mgmt-coverage/target/site/jacoco
-                aggregate/**/*', allowEmptyArchive: true
+                  archiveArtifacts artifacts: 'outcome-curr-mgmt-coverage/target/site/jacoco-aggregate/**/*', allowEmptyArchive: true
             }
         }
     }
