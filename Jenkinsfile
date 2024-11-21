@@ -10,14 +10,14 @@ pipeline {
 
         stage('Build') {
             steps {
-                sh './mvnw clean install'
+                sh 'mvn clean install'
             }
         }
 
         stage('Test') {
             steps {
-                sh './mvnw test'
-                sh './mvnw jacoco:report'
+                sh 'mvn test'
+                sh 'mvn jacoco:report'
                 jacoco execPattern: '**/target/*.exec',
                        classPattern: '**/classes',
                        sourcePattern: '**/src/main/java',
