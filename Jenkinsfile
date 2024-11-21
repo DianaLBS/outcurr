@@ -17,12 +17,7 @@ pipeline {
         stage('Test') {
             steps {
                 sh 'mvn test'
-                sh 'mvn jacoco:report'
-                jacoco execPattern: '**/target/*.exec',
-                       classPattern: '**/classes',
-                       sourcePattern: '**/src/main/java',
-                       exclusionPattern: '**/src/test/java'
-            }
+                sh 'mvn verify'
         }
 
         stage('Build Docker image') {
@@ -39,7 +34,8 @@ pipeline {
 
         stage('Reports') {
             steps {
-                archiveArtifacts artifacts: '**/target/site/jacoco/index.html', fingerprint: true
+                  archiveArtifacts artifacts: 'outcome-curr-mgmt-coverage/target/site/jacoco
+                aggregate/**/*', allowEmptyArchive: true
             }
         }
     }
