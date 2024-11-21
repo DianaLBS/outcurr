@@ -285,6 +285,39 @@ public class FacultyControllerSmokeIT extends BaseSmokeIT {
     }
 
     @Test
+    void testCreateFacultyWithMissingFields() {
+        TestRestTemplate testRestTemplate = new TestRestTemplate();
+        FacultyInDTO facultyInDTO = new FacultyInDTO("", "", "Y","x");
+        HttpEntity<FacultyInDTO> entity = new HttpEntity<>(facultyInDTO, getRequestHeaders());
+
+        String url = server + OUTCURRAPI_V_1_AUTH_FACULTIES;
+        ResponseEntity<String> response = testRestTemplate.exchange(
+                url,
+                HttpMethod.POST,
+                entity,
+                String.class);
+
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+    }
+
+    @Test
+    void testGetFacultyByInvalidId() {
+        TestRestTemplate testRestTemplate = new TestRestTemplate();
+        HttpEntity<String> entity = new HttpEntity<>(getRequestHeaders());
+
+        String url = server + OUTCURRAPI_V_1_AUTH_FACULTIES + "9999";
+        ResponseEntity<FacultyOutDTO> response = testRestTemplate.exchange(
+                url,
+                HttpMethod.GET,
+                entity,
+                FacultyOutDTO.class);
+
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+    }
+
+
+
+    @Test
     void deleteFacultyThatDoesNotExistWillFail(){
         TestRestTemplate testRestTemplate = new TestRestTemplate();
         String token = "Bearer " + testUserJWTToken;
@@ -311,5 +344,12 @@ public class FacultyControllerSmokeIT extends BaseSmokeIT {
         testRestTemplate.exchange(url+facultyOutDTO1.facId(), HttpMethod.DELETE, jwtEntity, Void.class);
         testRestTemplate.exchange(url+newFacultyId, HttpMethod.DELETE, jwtEntity, Void.class);
         testRestTemplate.exchange(url+facultyOutDTO3.facId(), HttpMethod.DELETE, jwtEntity, Void.class);
+    }
+
+    private HttpHeaders getRequestHeaders() {
+        String token = "Bearer " + testUserJWTToken;
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", token);
+        return headers;
     }
 }

@@ -268,6 +268,63 @@ public class AcademicPeriodControllerSmokeIT extends BaseSmokeIT {
     }
 
     @Test
+    void testCreateAcademicPeriodWithMissingFields() {
+        TestRestTemplate testRestTemplate = new TestRestTemplate();
+        AcadPeriodInDTO acadPeriodInDTO = new AcadPeriodInDTO("", "", 0);
+        HttpEntity<AcadPeriodInDTO> entity = new HttpEntity<>(acadPeriodInDTO, getRequestHeaders());
+
+        String url = server + OUTCURRAPI_V_1_AUTH_ACAD_PERIODS;
+        ResponseEntity<String> response = testRestTemplate.exchange(
+                url,
+                HttpMethod.POST,
+                entity,
+                String.class);
+
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+    }
+
+    @Test
+    void testCreateDuplicateAcademicPeriod() {
+        TestRestTemplate testRestTemplate = new TestRestTemplate();
+        AcadPeriodInDTO acadPeriodInDTO = new AcadPeriodInDTO("Duplicate Period", "Periodo Duplicado", 2023);
+        HttpEntity<AcadPeriodInDTO> entity = new HttpEntity<>(acadPeriodInDTO, getRequestHeaders());
+
+        String url = server + OUTCURRAPI_V_1_AUTH_ACAD_PERIODS;
+        ResponseEntity<AcadPeriodOutDTO> response = testRestTemplate.exchange(
+                url,
+                HttpMethod.POST,
+                entity,
+                AcadPeriodOutDTO.class);
+
+        assertEquals(HttpStatus.CREATED, response.getStatusCode());
+
+        // Attempt to create the same academic period again
+        ResponseEntity<AcadPeriodOutDTO> duplicateResponse = testRestTemplate.exchange(
+                url,
+                HttpMethod.POST,
+                entity,
+                AcadPeriodOutDTO.class);
+
+        assertEquals(HttpStatus.CONFLICT, duplicateResponse.getStatusCode());
+    }
+
+    @Test
+    void testGetAllAcademicPeriods() {
+        TestRestTemplate testRestTemplate = new TestRestTemplate();
+        HttpEntity<String> entity = new HttpEntity<>(getRequestHeaders());
+
+        String url = server + OUTCURRAPI_V_1_AUTH_ACAD_PERIODS;
+        ResponseEntity<List<AcadPeriodOutDTO>> response = testRestTemplate.exchange(
+                url,
+                HttpMethod.GET,
+                entity,
+                new ParameterizedTypeReference<List<AcadPeriodOutDTO>>() {});
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+    }
+
+    @Test
     void testDeleteAcademicPeriodHappyPath(){
         TestRestTemplate testRestTemplate = new TestRestTemplate();
         String token = "Bearer "+testUserJWTToken;
@@ -306,5 +363,14 @@ public class AcademicPeriodControllerSmokeIT extends BaseSmokeIT {
                 responseOfCreateAcPeriod, new ParameterizedTypeReference<String>() {
                 });
     }
+
+    private HttpHeaders getRequestHeaders() {
+        String token = "Bearer " + testUserJWTToken;
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", token);
+        return headers;
+    }
+
+
 
 }
