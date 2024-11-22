@@ -21,7 +21,7 @@ pipeline {
            post {
                always {
                    publishHTML([
-                       reportDir: 'outcome-curr-mgmt-coverage/target/site/jacocoaggregate',
+                       reportDir: 'outcome-curr-mgmt-coverage/target/site/jacocoaggregate/**/*',
                        reportFiles: 'index.html',
                        reportName: 'JaCoCo Coverage Report',
                        allowMissing: true
