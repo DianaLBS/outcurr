@@ -1,20 +1,22 @@
 pipeline {
-    agent {label 'docker-agent'}
+    agent { label 'docker-agent' }
     stages {
         stage('Run image') {
             steps {
-                sh 'docker build -t outcome-curr-mgmt .'
-                sh 'docker run -d -p 9092:9092 outcome-curr-mgmt'
+                bat '''
+                docker build -t outcome-curr-mgmt .
+                docker run -d -p 9092:9092 outcome-curr-mgmt
+                '''
             }
         }
         stage('Run Tests') {
             steps {
-                sh 'mvn clean test'
+                bat 'mvn clean test'
             }
         }
         stage('Report') {
             steps {
-                sh 'mvn verify'
+                bat 'mvn verify'
             }
             post {
                 always {
@@ -26,10 +28,9 @@ pipeline {
     post {
         always {
             script {
-                sh '''
-                    docker ps -a -q --filter "ancestor=outcome-curr-mgmt" | grep -q . && \
-                    docker rm $(docker ps -a -q --filter "ancestor=outcome-curr-mgmt") || true
-                    docker rmi outcome-curr-mgmt --force || true
+                bat '''
+                for /f "tokens=*" %%i in ('docker ps -a -q --filter "ancestor=outcome-curr-mgmt"') do docker rm %%i
+                docker rmi outcome-curr-mgmt --force || true
                 '''
             }
         }
