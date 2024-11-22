@@ -14,16 +14,21 @@ pipeline {
                 bat 'mvn clean test'
             }
         }
-        stage('Report') {
-            steps {
-                bat 'mvn verify'
-            }
-            post {
-                always {
-                    archiveArtifacts artifacts: 'outcome-curr-mgmt-coverage/target/site/jacocoaggregate/**/*', allowEmptyArchive: true
-                }
-            }
-        }
+       stage('Report') {
+           steps {
+               bat 'mvn verify'
+           }
+           post {
+               always {
+                   publishHTML([
+                       reportDir: 'outcome-curr-mgmt-coverage/target/site/jacocoaggregate',
+                       reportFiles: 'index.html',
+                       reportName: 'JaCoCo Coverage Report',
+                       allowMissing: true
+                   ])
+               }
+           }
+       }
     }
     post {
         always {
