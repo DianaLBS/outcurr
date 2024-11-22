@@ -1,40 +1,43 @@
 pipeline {
-    agent any
+    agent {label 'docker-agent'}
     stages {
-
-        stage('Build Docker image') {
+        stage('Run image') {
             steps {
-                sh 'docker build -t outcome-curr-mgmt:latest -f Dockerfile .'
-
+                sh 'docker build -t outcome-curr-mgmt .'
+                sh 'docker run -d -p 9092:9092 outcome-curr-mgmt'
             }
         }
-
-        stage('Deploy Docker image') {
+        stage('Run Tests') {
             steps {
-                sh 'docker run -d --name outcome-curr-mgmt -p 9092:9092 outcome-curr-mgmt:latest'
+                sh 'mvn clean test'
             }
         }
-
-
-        stage('Test') {
+        stage('Report') {
             steps {
-                sh 'mvn test'
                 sh 'mvn verify'
             }
-        }
-
-        stage('Reports') {
-            steps {
-                archiveArtifacts artifacts: 'outcome-curr-mgmt-coverage/target/site/jacoco-aggregate/**/*', allowEmptyArchive: true
+            post {
+                always {
+                    archiveArtifacts artifacts: 'outcome-curr-mgmt-coverage/target/site/jacocoaggregate/**/*', allowEmptyArchive: true
+                }
             }
         }
     }
-
     post {
         always {
-            echo "Limpieza del entorno..."
-            sh 'docker stop outcome-curr-mgmt || true'
-            sh 'docker rm outcome-curr-mgmt || true'
+            script {
+                sh '''
+                    docker ps -a -q --filter "ancestor=outcome-curr-mgmt" | grep -q . && \
+                    docker rm $(docker ps -a -q --filter "ancestor=outcome-curr-mgmt") || true
+                    docker rmi outcome-curr-mgmt --force || true
+                '''
+            }
+        }
+        success {
+            echo 'Pipeline executed successfully.'
+        }
+        failure {
+            echo 'Pipeline execution failed.'
         }
     }
 }
