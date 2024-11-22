@@ -18,7 +18,7 @@ Jacoco
 ---
 ## Getting Started
 
-First, compile the project with maven:
+1: compile the project with maven:
 
 ```bash
 mvn clean install
