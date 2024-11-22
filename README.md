@@ -5,7 +5,7 @@ This project is the backend code part of a bigger project aimed to cover the adm
 
 ## Tech Stack
 
-Java 17
+Java 17 
 Maven
 Spring Boot 3
 Spring 6
@@ -40,7 +40,7 @@ You can start editing the page by modifying `app/page.tsx`. The page auto-update
 
 ###  Java 17
 
-To learn more about Java 17, take a look at the following resources:
+This is so important, learn more about Java 17, take a look at the following resources:
 
 ---
 
