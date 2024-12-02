@@ -1,0 +1,18 @@
+global:
+  resolve_timeout: 5m
+  smtp_smarthost: 'smtp.gmail.com:587'
+  smtp_from: 'outcur@alertmanager.com'
+  smtp_auth_username: 'dianalorenabalantasolano@gmail.com'
+  smtp_auth_password: 'pger igsc lsbk llek'
+
+route:
+  group_by: ['alertname', 'severity']
+  group_wait: 30s
+  group_interval: 5m
+  repeat_interval: 1h
+  receiver: 'email-alert'
+
+receivers:
+  - name: 'email-alert'
+    email_configs:
+      - to: 'diana.balanta10@gmail.com'

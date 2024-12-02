@@ -1,0 +1,54 @@
+groups:
+  - name: application_alerts
+    rules:
+      # Alerta para tasa de errores alta
+      - alert: HighErrorRate
+        expr: increase(http_server_errors_total[5m]) > 10
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Alta tasa de errores en la aplicación"
+          description: "Se detectaron más de 10 errores en los últimos 5 minutos."
+
+      # Alerta para tiempo de respuesta alto
+      - alert: HighResponseTime
+        expr: histogram_quantile(0.95, rate(http_server_request_duration_seconds_bucket[5m])) > 0.5
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Tiempo de respuesta alto en la aplicación"
+          description: "El 95% de las solicitudes toman más de 0.5 segundos para completarse."
+
+  - name: system_alerts
+    rules:
+      # Alerta para uso de CPU alto
+      - alert: HighCPUUsage
+        expr: rate(node_cpu_seconds_total{mode="user"}[5m]) > 0.8
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Uso de CPU alto en el servidor"
+          description: "El uso de CPU está por encima del 80% en los últimos 5 minutos."
+
+      # Alerta para uso de memoria alto
+      - alert: HighMemoryUsage
+        expr: node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes < 0.2
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Uso de memoria alto en el servidor"
+          description: "Menos del 20% de memoria disponible."
+
+      # Alerta para espacio en disco bajo
+      - alert: LowDiskSpace
+        expr: node_filesystem_avail_bytes{fstype!~"tmpfs|overlay"} / node_filesystem_size_bytes < 0.15
+        for: 3m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Espacio en disco bajo"
+          description: "Queda menos del 15% de espacio disponible en disco."

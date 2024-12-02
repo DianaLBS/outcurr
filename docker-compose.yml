@@ -1,0 +1,100 @@
+services:
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./prometheus/alert_rules.yml:/etc/prometheus/alert_rules.yml
+    depends_on:
+      - alertmanager
+      - node-exporter
+    ports:
+      - "9090:9090"
+    networks:
+      - monitoring
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    depends_on:
+      - prometheus
+      - loki
+    volumes:
+      - grafana-storage:/var/lib/grafana
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    networks:
+      - monitoring
+
+  loki:
+    image: grafana/loki:latest
+    container_name: loki
+    volumes:
+      - ./loki/local-config.yaml:/etc/loki/local-config.yml
+    ports:
+      - "3100:3100"
+    command: -config.file=/etc/loki/local-config.yaml
+    networks:
+      - monitoring
+
+  node-exporter:
+    image: prom/node-exporter:latest
+    container_name: node-exporter
+    ports:
+      - "9100:9100"
+    volumes:
+      - "/proc:/host/proc:ro"
+      - "/sys:/host/sys:ro"
+      - "/:/rootfs:ro"
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.sysfs=/host/sys'
+      - '--collector.filesystem.ignored-mount-points=^/(sys|proc|dev|host|etc)($|/)'
+    networks:
+      - monitoring
+
+  alertmanager:
+    image: prom/alertmanager:latest
+    container_name: alertmanager
+    volumes:
+      - ./alertmanager/config.yml:/etc/alertmanager/alertmanager.yml
+    ports:
+      - "9093:9093"
+    networks:
+      - monitoring
+
+  grafana-agent:
+    image: grafana/agent:latest
+    container_name: grafana-agent
+    volumes:
+      - ./grafana-agent/agent-config.yml:/etc/agent-config.yml
+    command: -config.file=/etc/agent-config.yml
+    networks:
+      - monitoring
+
+  outcurr-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: outcurr-app
+    ports:
+      - "8088:8088"
+    volumes:
+      - ./outcome-curr-mgmt/logs:/logs
+    depends_on:
+      - prometheus
+    networks:
+      - monitoring
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      - MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE=*
+      - MANAGEMENT_METRICS_EXPORT_PROMETHEUS_ENABLED=true
+
+networks:
+  monitoring:
+    driver: bridge
+
+volumes:
+  grafana-storage:

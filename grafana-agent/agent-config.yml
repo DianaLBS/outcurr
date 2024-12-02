@@ -1,0 +1,26 @@
+server:
+  log_level: info
+  http_listen_port: 12345
+
+metrics:
+  configs:
+    - name: app-metrics
+      scrape_configs:
+        - job_name: 'app'
+          static_configs:
+            - targets: ['my-app:8080']  # Recolectar métricas desde la app
+        - job_name: 'node-exporter'
+          static_configs:
+            - targets: ['node-exporter:9100']  # Métricas del sistema
+
+logs:
+  configs:
+    - name: app-logs
+      positions:
+        filename: /tmp/positions.yaml
+      clients:
+        - url: http://loki:3100/loki/api/v1/push  # Enviar logs a Loki
+      target_config:
+        targets:
+          - __path__: /var/log/*.log  # Logs del sistema
+          - __path__: /app/logs/*.log  # Logs personalizados de tu app
