@@ -23,7 +23,8 @@ FROM eclipse-temurin:17-jre
 WORKDIR /app
 
 # Copia el archivo JAR generado desde la fase de construcción al contenedor final
-COPY --from=build /app/outcome-curr-mgmt/target/*.jar /app/outcome-curr-mgmt.jar
+COPY --from=build /app/outcome-curr-mgmt/target/outcome-curr-mgmt-1.0-SNAPSHOT.jar /app/outcome-curr-mgmt.jar
+
 
 # Expone el puerto 8088 para permitir conexiones a la aplicación
 EXPOSE 8088
