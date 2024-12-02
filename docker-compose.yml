@@ -80,7 +80,7 @@ services:
       dockerfile: Dockerfile
     container_name: outcurr-app
     ports:
-      - "8088:8088"
+      - "9092:9092"
     volumes:
       - ./outcome-curr-mgmt/logs:/logs
     depends_on:
@@ -89,7 +89,7 @@ services:
       - monitoring
     environment:
       - SPRING_PROFILES_ACTIVE=prod
-      - MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE=*
+      - MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE=prometheus, health, info #Endpoints necesarios
       - MANAGEMENT_METRICS_EXPORT_PROMETHEUS_ENABLED=true
 
 networks:
