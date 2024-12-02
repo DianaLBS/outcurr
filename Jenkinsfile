@@ -5,7 +5,7 @@ pipeline {
             steps {
                 bat '''
                 docker build -t outcome-curr-mgmt .
-                docker run -d -p 9092:9092 outcome-curr-mgmt
+                docker run -d -p 8088:8088 outcome-curr-mgmt
                 '''
             }
         }
@@ -14,21 +14,23 @@ pipeline {
                 bat 'mvn clean test'
             }
         }
-       stage('Report') {
-           steps {
-               bat 'mvn verify'
-           }
-           post {
-               always {
-                   publishHTML([
-                       reportDir: 'outcome-curr-mgmt-coverage/target/site/jacocoaggregate/**/*',
-                       reportFiles: 'index.html',
-                       reportName: 'JaCoCo Coverage Report',
-                       allowMissing: true
-                   ])
-               }
-           }
-       }
+        stage('Report') {
+            steps {
+                bat 'mvn verify'
+            }
+            post {
+                always {
+                    publishHTML(target: [
+                        reportDir: 'outcome-curr-mgmt-coverage/target/site/jacocoaggregate', // Directorio del reporte
+                        reportFiles: 'index.html', // Archivo del reporte
+                        reportName: 'JaCoCo Coverage Report', // Nombre del reporte
+                        allowMissing: true, // Permitir que falte el reporte (por ejemplo, si las pruebas fallan)
+                        keepAll: true, // Mantener todos los reportes
+                        alwaysLinkToLastBuild: true // Enlazar siempre al último build
+                    ])
+                }
+            }
+        }
     }
     post {
         always {

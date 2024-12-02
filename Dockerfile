@@ -25,8 +25,8 @@ WORKDIR /app
 # Copia el archivo JAR generado desde la fase de construcción al contenedor final
 COPY --from=build /app/outcome-curr-mgmt/target/*.jar /app/outcome-curr-mgmt.jar
 
-# Expone el puerto 9092 para permitir conexiones a la aplicación
-EXPOSE 9092
+# Expone el puerto 8088 para permitir conexiones a la aplicación
+EXPOSE 8088
 
 # Comando predeterminado para ejecutar la aplicación
-CMD ["java", "-jar", "/app/outcurr-app.jar"]
+CMD ["java", "-jar", "/app/outcome-curr-mgmt.jar"]
