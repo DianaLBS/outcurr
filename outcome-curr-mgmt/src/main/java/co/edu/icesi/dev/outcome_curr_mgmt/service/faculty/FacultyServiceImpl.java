@@ -11,18 +11,18 @@ import co.edu.icesi.dev.outcome_curr_mgmt.persistence.faculty.FacultyRepository;
 import co.edu.icesi.dev.outcome_curr_mgmt.service.provider.faculty.FacultyProvider;
 import co.edu.icesi.dev.outcome_curr_mgmt.service.validator.faculty.UserPermAccess;
 import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.Timer;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Optional;
-import java.util.function.Supplier;
+import java.util.concurrent.TimeUnit;
 
 @Service
 @RequiredArgsConstructor
@@ -33,14 +33,29 @@ public class FacultyServiceImpl implements FacultyService {
     private final FacultyProvider facultyProvider;
     private final MeterRegistry meterRegistry;
 
+    private Counter createFacultyCounter;
+    private Counter updateFacultyCounter;
+    private Counter deleteFacultyCounter;
+    private Timer getFacultyTimer;
+
+    @PostConstruct
+    public void initMetrics() {
+        createFacultyCounter = meterRegistry.counter("faculty.create.count", "type", "create");
+        updateFacultyCounter = meterRegistry.counter("faculty.update.count", "type", "update");
+        deleteFacultyCounter = meterRegistry.counter("faculty.delete.count", "type", "delete");
+        getFacultyTimer = meterRegistry.timer("faculty.get.time", "type", "get");
+    }
+
     @Override
     @Transactional
     public FacultyOutDTO createFaculty(FacultyInDTO facultyInDTO) {
         MDC.put("operation", "CREATE");
-        logger.info("Creating a new faculty.");
+        MDC.put("facultyName", facultyInDTO.facNameEng());
+        logger.info("Creating a new faculty with name: {}", facultyInDTO.facNameEng());
         try {
             FacultyOutDTO result = facultyProvider.saveFaculty(facultyInDTO);
-            logger.info("Faculty successfully created. {}", result);
+            createFacultyCounter.increment();
+            logger.info("Faculty successfully created. ID: {}, Name: {}", result.facId(), result.facNameEng());
             MDC.put("status", "success");
             return result;
         } catch (Exception e) {
@@ -58,12 +73,13 @@ public class FacultyServiceImpl implements FacultyService {
     public FacultyOutDTO getFacultyByFacId(long facId) {
         MDC.put("operation", "GET");
         MDC.put("facultyId", String.valueOf(facId));
-        logger.info("Getting a faculty by its id.");
+        logger.info("Getting a faculty by its id: {}", facId);
+        Timer.Sample sample = Timer.start(meterRegistry);
         try {
             facultyProvider.validateAccess(0L, UserPermAccess.QUERY);
             FacultyOutDTO result = facultyMapper.facultyToFacultyOutDTO(facultyProvider.findFacultyByFacId(facId));
             MDC.put("status", "success");
-            logger.info("Faculty retrieved successfully. {}", result);
+            logger.info("Faculty retrieved successfully. ID: {}, Name: {}", result.facId(), result.facNameEng());
             return result;
         } catch (Exception e) {
             MDC.put("status", "error");
@@ -71,6 +87,7 @@ public class FacultyServiceImpl implements FacultyService {
             logger.error("Error retrieving faculty: {}", e.getMessage(), e);
             throw e;
         } finally {
+            sample.stop(getFacultyTimer);
             MDC.clear();
         }
     }
@@ -80,7 +97,7 @@ public class FacultyServiceImpl implements FacultyService {
     public FacultyOutDTO updateFaculty(long facId, FacultyInDTO facultyToUpdate) {
         MDC.put("operation", "UPDATE");
         MDC.put("facultyId", String.valueOf(facId));
-        logger.info("Updating the faculty {}.", facId);
+        logger.info("Updating the faculty with ID: {}", facId);
         try {
             facultyProvider.validateAccess(facId, UserPermAccess.ADMIN);
             facultyProvider.checkIfSpaNameIsAlreadyUsed(facultyToUpdate.facNameSpa());
@@ -95,7 +112,8 @@ public class FacultyServiceImpl implements FacultyService {
 
             facultyRepository.save(faculty);
             facultyProvider.addActionToChangelog(ChangeLogAction.UPDATE, facId, "FACULTY", faculty, facultyBefore);
-            logger.info("Faculty successfully updated. {}", faculty);
+            updateFacultyCounter.increment();
+            logger.info("Faculty successfully updated. ID: {}, New Name: {}", faculty.getFacId(), faculty.getFacNameEng());
             MDC.put("status", "success");
             return facultyMapper.facultyToFacultyOutDTO(faculty);
         } catch (Exception e) {
@@ -113,7 +131,7 @@ public class FacultyServiceImpl implements FacultyService {
     public void deleteFaculty(long facId) {
         MDC.put("operation", "DELETE");
         MDC.put("facultyId", String.valueOf(facId));
-        logger.info("Deleting a faculty.");
+        logger.info("Deleting a faculty with ID: {}", facId);
         try {
             facultyProvider.validateAccess(facId, UserPermAccess.ADMIN);
             Faculty facultyToDelete = facultyProvider.findFacultyByFacId(facId);
@@ -121,12 +139,13 @@ public class FacultyServiceImpl implements FacultyService {
             if (facultyToDelete.getAcadPrograms().isEmpty() && facultyToDelete.getCourses().isEmpty()) {
                 facultyRepository.delete(facultyToDelete);
                 facultyProvider.addActionToChangelog(ChangeLogAction.DELETE, facId, "FACULTY", null, facultyToDelete);
+                deleteFacultyCounter.increment();
                 logger.info("Faculty {} was successfully deleted.", facId);
                 MDC.put("status", "success");
             } else {
                 MDC.put("status", "error");
                 MDC.put("errorType", "ValidationException");
-                logger.error("Error: a faculty can't be deleted if it has associated data.");
+                logger.error("Error: a faculty can't be deleted if it has associated data. Faculty ID: {}", facId);
                 throw new OutCurrException(OutCurrExceptionType.FACULTY_NOT_DELETED);
             }
         } catch (Exception e) {
