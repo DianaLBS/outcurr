@@ -27,7 +27,7 @@ COPY --from=build /app/outcome-curr-mgmt/target/outcome-curr-mgmt-1.0-SNAPSHOT.j
 
 
 # Expone el puerto 8088 para permitir conexiones a la aplicación
-EXPOSE 8088
+EXPOSE 9092
 
 # Comando predeterminado para ejecutar la aplicación
 CMD ["java", "-jar", "/app/outcome-curr-mgmt.jar"]

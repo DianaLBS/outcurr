@@ -39,6 +39,16 @@ services:
     networks:
       - monitoring
 
+  promtail:
+    image: grafana/promtail:latest
+    container_name: promtail
+    volumes:
+      - ./promtail/config.yml:/etc/promtail/config.yml
+      - ./outcome-curr-mgmt/logs:/var/log/outcome-curr-mgmt
+    command: -config.file=/etc/promtail/config.yml
+    networks:
+      - monitoring
+
   node-exporter:
     image: prom/node-exporter:latest
     container_name: node-exporter
@@ -80,9 +90,9 @@ services:
       dockerfile: Dockerfile
     container_name: outcurr-app
     ports:
-      - "8088:8088"
+      - "9092:9092"
     volumes:
-      - ./outcome-curr-mgmt/logs:/logs
+      - ./outcome-curr-mgmt/logs:/app/logs
     depends_on:
       - prometheus
     networks:
@@ -91,6 +101,7 @@ services:
       - SPRING_PROFILES_ACTIVE=prod
       - MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE=*
       - MANAGEMENT_METRICS_EXPORT_PROMETHEUS_ENABLED=true
+      - LOGGING_FILE_NAME=/app/logs/application.log
 
 networks:
   monitoring:
