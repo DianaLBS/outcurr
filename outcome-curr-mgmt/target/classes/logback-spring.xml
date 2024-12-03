@@ -1,12 +1,25 @@
-<appender name="file" class="ch.qos.logback.core.rolling.RollingFileAppender">
-    <file>logs/application.log</file> 
-    <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-        <fileNamePattern>logs/application.%d{yyyy-MM-dd}.log</fileNamePattern>
-        <maxHistory>30</maxHistory>
-    </rollingPolicy>
-    <encoder class="net.logstash.logback.encoder.LogstashEncoder" />
-</appender>
+<configuration>
+    <include resource="org/springframework/boot/logging/logback/base.xml"/>
 
-<root level="info">
-    <appender-ref ref="file" />
-</root>
+    <!-- Appender para archivo -->
+    <appender name="FILE" class="ch.qos.logback.core.FileAppender">
+        <file>/logs/application.log</file>
+        <append>true</append>
+        <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+            <!-- Opciones adicionales si es necesario -->
+            <includeMdc>true</includeMdc> <!-- Incluir contexto MDC si es necesario -->
+            <customFields>{"app_name":"outcurr-app"}</customFields> <!-- Campos personalizados -->
+        </encoder>
+    </appender>
+
+    <!-- Opcional: Appender para consola -->
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="net.logstash.logback.encoder.LogstashEncoder"/>
+    </appender>
+
+    <!-- Logger Root -->
+    <root level="INFO">
+        <appender-ref ref="FILE"/>
+        <appender-ref ref="CONSOLE"/>
+    </root>
+</configuration>
