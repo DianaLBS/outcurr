@@ -36,30 +36,19 @@ public class FacultyServiceImpl implements FacultyService {
     @Override
     @Transactional
     public FacultyOutDTO createFaculty(FacultyInDTO facultyInDTO) {
-        // Agregar detalles contextuales al MDC
-        MDC.put("operation", "createFaculty");
-        MDC.put("method", "POST");
-
-        logger.info("Starting method | facultyInDTO={}", facultyInDTO);
-
+        MDC.put("operation", "CREATE");
+        logger.info("Creating a new faculty.");
         try {
-            // Guardar la facultad
-            logger.debug("Saving faculty | facultyInDTO={}", facultyInDTO);
             FacultyOutDTO result = facultyProvider.saveFaculty(facultyInDTO);
-
-            // Métrica de creación de facultad
-            meterRegistry.counter("faculty.created").increment();
-
-            logger.info("Successfully created faculty | facultyId={}, facultyName={}", result.facId(),
-                    facultyInDTO.facNameSpa());
+            logger.info("Faculty successfully created. {}", result);
+            MDC.put("status", "success");
             return result;
-
         } catch (Exception e) {
-            logger.error("Error in createFaculty | facultyInDTO={}, message={}", facultyInDTO, e.getMessage(), e);
+            MDC.put("status", "error");
+            MDC.put("errorType", e.getClass().getSimpleName());
+            logger.error("Error creating faculty: {}", e.getMessage(), e);
             throw e;
-
         } finally {
-            // Limpiar el contexto MDC después de la ejecución
             MDC.clear();
         }
     }
@@ -67,137 +56,104 @@ public class FacultyServiceImpl implements FacultyService {
     @Override
     @Transactional
     public FacultyOutDTO getFacultyByFacId(long facId) {
-        // Agregar detalles contextuales al MDC
-        MDC.put("operation", "getFacultyByFacId");
-        MDC.put("method", "GET");
-
-        logger.info("Starting method to get faculty by facultyId={}", facId);
-
+        MDC.put("operation", "GET");
+        MDC.put("facultyId", String.valueOf(facId));
+        logger.info("Getting a faculty by its id.");
         try {
-            // Validación de acceso
-            logger.debug("Validating access for facultyId={}", facId);
-
-            // Obtener facultad
-            logger.debug("Fetching faculty with facultyId={}", facId);
-            FacultyOutDTO facultyOutDTO = facultyMapper
-                    .facultyToFacultyOutDTO(facultyProvider.findFacultyByFacId(facId));
-
-            logger.info("Successfully retrieved faculty | facultyId={}, facultyName={}", facId,
-                    facultyOutDTO.facNameSpa());
-            return facultyOutDTO;
-
+            facultyProvider.validateAccess(0L, UserPermAccess.QUERY);
+            FacultyOutDTO result = facultyMapper.facultyToFacultyOutDTO(facultyProvider.findFacultyByFacId(facId));
+            MDC.put("status", "success");
+            logger.info("Faculty retrieved successfully. {}", result);
+            return result;
         } catch (Exception e) {
-            logger.error("Error in getFacultyByFacId | facultyId={}, message={}", facId, e.getMessage(), e);
+            MDC.put("status", "error");
+            MDC.put("errorType", e.getClass().getSimpleName());
+            logger.error("Error retrieving faculty: {}", e.getMessage(), e);
             throw e;
-
         } finally {
-            // Limpiar el contexto MDC después de la ejecución
             MDC.clear();
         }
     }
 
+    @Override
     @Transactional
+    public FacultyOutDTO updateFaculty(long facId, FacultyInDTO facultyToUpdate) {
+        MDC.put("operation", "UPDATE");
+        MDC.put("facultyId", String.valueOf(facId));
+        logger.info("Updating the faculty {}.", facId);
+        try {
+            facultyProvider.validateAccess(facId, UserPermAccess.ADMIN);
+            facultyProvider.checkIfSpaNameIsAlreadyUsed(facultyToUpdate.facNameSpa());
+            facultyProvider.checkIfEngNameIsAlreadyUsed(facultyToUpdate.facNameEng());
+
+            Faculty faculty = facultyProvider.findFacultyByFacId(facId);
+            FacultyOutDTO facultyBefore = facultyMapper.facultyToFacultyOutDTO(faculty);
+
+            faculty.setFacIsActive(facultyToUpdate.isActive().charAt(0));
+            faculty.setFacNameSpa(facultyToUpdate.facNameSpa());
+            faculty.setFacNameEng(facultyToUpdate.facNameEng());
+
+            facultyRepository.save(faculty);
+            facultyProvider.addActionToChangelog(ChangeLogAction.UPDATE, facId, "FACULTY", faculty, facultyBefore);
+            logger.info("Faculty successfully updated. {}", faculty);
+            MDC.put("status", "success");
+            return facultyMapper.facultyToFacultyOutDTO(faculty);
+        } catch (Exception e) {
+            MDC.put("status", "error");
+            MDC.put("errorType", e.getClass().getSimpleName());
+            logger.error("Error updating faculty: {}", e.getMessage(), e);
+            throw e;
+        } finally {
+            MDC.clear();
+        }
+    }
+
+    @Override
+    @Transactional
+    public void deleteFaculty(long facId) {
+        MDC.put("operation", "DELETE");
+        MDC.put("facultyId", String.valueOf(facId));
+        logger.info("Deleting a faculty.");
+        try {
+            facultyProvider.validateAccess(facId, UserPermAccess.ADMIN);
+            Faculty facultyToDelete = facultyProvider.findFacultyByFacId(facId);
+
+            if (facultyToDelete.getAcadPrograms().isEmpty() && facultyToDelete.getCourses().isEmpty()) {
+                facultyRepository.delete(facultyToDelete);
+                facultyProvider.addActionToChangelog(ChangeLogAction.DELETE, facId, "FACULTY", null, facultyToDelete);
+                logger.info("Faculty {} was successfully deleted.", facId);
+                MDC.put("status", "success");
+            } else {
+                MDC.put("status", "error");
+                MDC.put("errorType", "ValidationException");
+                logger.error("Error: a faculty can't be deleted if it has associated data.");
+                throw new OutCurrException(OutCurrExceptionType.FACULTY_NOT_DELETED);
+            }
+        } catch (Exception e) {
+            MDC.put("status", "error");
+            MDC.put("errorType", e.getClass().getSimpleName());
+            logger.error("Error deleting faculty: {}", e.getMessage(), e);
+            throw e;
+        } finally {
+            MDC.clear();
+        }
+    }
+
     @Override
     public FacultyOutDTO getFacultyByFacNameInSpa(String name) {
-        return facultyProvider.getFacultyByNameInSpa(name);
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'getFacultyByFacNameInSpa'");
     }
 
     @Override
-    @Transactional
     public FacultyOutDTO getFacultyByFacNameInEng(String name) {
-        // Agregar detalles contextuales al MDC
-        MDC.put("operation", "getFacultyByFacNameInEng");
-        MDC.put("method", "GET");
-
-        logger.info("Starting method to get faculty by name in English: {}", name);
-
-        try {
-            // Métrica
-            FacultyOutDTO facultyOutDTO = meterRegistry.timer("faculty.getByName.eng")
-                    .record(() -> facultyProvider.getFacultyByNameInEng(name));
-
-            if (facultyOutDTO != null) {
-                logger.info("Successfully retrieved faculty by name in English | facultyNameInEng={}", name);
-            } else {
-                logger.warn("No faculty found with name in English: {}", name);
-            }
-
-            return facultyOutDTO;
-
-        } catch (Exception e) {
-            logger.error("Error in getFacultyByFacNameInEng | facultyNameInEng={}, message={}", name, e.getMessage(),
-                    e);
-            throw e;
-
-        } finally {
-            // Limpiar el contexto MDC después de la ejecución
-            MDC.clear();
-        }
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'getFacultyByFacNameInEng'");
     }
 
-    @Transactional
     @Override
     public List<FacultyOutDTO> getFaculties() {
-        logger.info("Getting all faculties of the system.");
-        return facultyMapper.facultiesToFacultiesOutDTO(facultyRepository.findAll());
-    }
-
-    @Transactional
-    @Override
-    public FacultyOutDTO updateFaculty(long facId, FacultyInDTO facultyToUpdate) {
-        logger.info("Updating the faculty {}.", facId);
-        facultyProvider.validateAccess(facId, UserPermAccess.ADMIN);
-
-        facultyProvider.checkIfSpaNameIsAlreadyUsed(facultyToUpdate.facNameSpa());
-        facultyProvider.checkIfEngNameIsAlreadyUsed(facultyToUpdate.facNameEng());
-
-        Faculty faculty = facultyProvider.findFacultyByFacId(facId);
-        FacultyOutDTO facultyBefore = facultyMapper.facultyToFacultyOutDTO(faculty);
-
-        faculty.setFacIsActive(facultyToUpdate.isActive().charAt(0));
-        faculty.setFacNameSpa(facultyToUpdate.facNameSpa());
-        faculty.setFacNameEng(facultyToUpdate.facNameEng());
-
-        facultyRepository.save(faculty);
-
-        facultyProvider.addActionToChangelog(ChangeLogAction.UPDATE, facId, "FACULTY", faculty, facultyBefore);
-        logger.info("Faculty successfully updated.");
-
-        return facultyMapper.facultyToFacultyOutDTO(faculty);
-    }
-
-    @Transactional
-    @Override
-    public void deleteFaculty(long facId) {
-        logger.info("Deleting a faculty.");
-        facultyProvider.validateAccess(facId, UserPermAccess.ADMIN);
-        Faculty facultyToDelete = facultyProvider.findFacultyByFacId(facId);
-
-        logger.info("Checking if the faculty has academic programs, courses or users associated.");
-        if (facultyToDelete.getAcadPrograms().isEmpty() && facultyToDelete.getCourses().isEmpty()) {
-
-            facultyRepository.delete(facultyToDelete);
-            facultyProvider.addActionToChangelog(ChangeLogAction.DELETE, facId, "FACULTY", null, facultyToDelete);
-            logger.info("Faculty {} was successfully deleted.", facId);
-
-        } else {
-            logger.error("Error: a faculty can't be deleted if it has associated data.");
-            throw new OutCurrException(OutCurrExceptionType.FACULTY_NOT_DELETED);
-        }
-    }
-
-    @Scheduled(fixedRate = 60000)
-    public void logFacultyCount() {
-        long count = facultyRepository.count();
-        logger.info("Number of faculties in the system: {}", count);
-    }
-
-    @Scheduled(cron = "0 0 3 * * ?")
-    public void dailyFacultyCheck() {
-        logger.info("Executing daily faculty check.");
-
-        List<Faculty> faculties = facultyRepository.findAll();
-
-        logger.info("Faculties in the system: success");
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'getFaculties'");
     }
 }

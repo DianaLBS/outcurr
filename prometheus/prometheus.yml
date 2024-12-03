@@ -21,11 +21,7 @@ scrape_configs:
   - job_name: "outcurr-app"
     metrics_path: "/outcurrapi/actuator/prometheus" # Aquí se mueve fuera de static_configs
     static_configs:
-<<<<<<< HEAD
-      - targets: ['outcurr-app:9092']
-=======
       - targets: ["outcurr-app:9092"]
->>>>>>> 75b9665e434240ceab0a9180889f5cbbd840ef6d
 
 rule_files:
   - "/etc/prometheus/alert_rules.yml"
