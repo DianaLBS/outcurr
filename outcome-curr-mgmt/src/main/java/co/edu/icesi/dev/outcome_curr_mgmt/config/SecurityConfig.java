@@ -23,69 +23,38 @@ import java.util.regex.Pattern;
 @EnableMethodSecurity
 public class SecurityConfig {
 
-    private final SaamfiAuthenticationFilter saamfiAuthenticationFilter;
+        @Bean
+        public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+                http
+                                .csrf(AbstractHttpConfigurer::disable)
+                                .cors(AbstractHttpConfigurer::disable) // Deshabilitar CORS para pruebas
+                                .authorizeHttpRequests(authz -> authz.anyRequest().permitAll())
+                                .sessionManagement(session -> session
+                                                .sessionCreationPolicy(SessionCreationPolicy.STATELESS));
+                return http.build();
+        }
 
-    public SecurityConfig(SaamfiAuthenticationFilter saamfiAuthenticationFilter) {
-        this.saamfiAuthenticationFilter = saamfiAuthenticationFilter;
-    }
+        @Bean
+        public CorsConfigurationSource corsConfigurationSource() {
+                return request -> {
+                        String origin = request.getHeader(HttpHeaders.ORIGIN);
+                        Pattern pattern = Pattern.compile("https://([A-Za-z0-9-]+)\\.jcmunoz\\.net");
+                        CorsConfiguration configuration = new CorsConfiguration();
 
-    @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+                        if (origin == null) {
+                                return configuration;
+                        }
 
-        http.csrf(csrf -> csrf.disable());
-        http.csrf(AbstractHttpConfigurer::disable);
-        http.cors(cors -> cors.configurationSource(corsConfigurationSource()));
-        http.headers(headers -> headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::disable));
+                        if (!pattern.matcher(origin).matches()) {
+                                return configuration;
+                        }
 
-        String contextPath = "/actuator/";
+                        configuration.setAllowedOrigins(Collections.singletonList(origin));
+                        configuration.setAllowedMethods(Collections.singletonList("*"));
+                        configuration.setAllowedHeaders(Collections.singletonList("*"));
+                        return configuration;
 
-        http.authorizeHttpRequests(authz -> authz
-                .requestMatchers(new AntPathRequestMatcher(contextPath + "/actuator/**")).permitAll());
-
-        http.authorizeHttpRequests(
-                authz -> authz.requestMatchers(new AntPathRequestMatcher("/actuator/**")).permitAll());
-        http.authorizeHttpRequests(
-                authz -> authz.requestMatchers(new AntPathRequestMatcher("/outcurrapi/**")).permitAll());
-        http.authorizeHttpRequests(
-                authz -> authz.requestMatchers(new AntPathRequestMatcher(contextPath + "/h2-console/**")).permitAll());
-        http.authorizeHttpRequests(authz -> authz
-                .requestMatchers(new AntPathRequestMatcher(contextPath + "/v1/auth/users/login")).permitAll());
-        http.authorizeHttpRequests(
-                authz -> authz.requestMatchers(new AntPathRequestMatcher(contextPath + "/swagger-ui/**")).permitAll());
-        http.authorizeHttpRequests(
-                authz -> authz.requestMatchers(new AntPathRequestMatcher(contextPath + "/v3/api-docs/**")).permitAll());
-
-        http.authorizeHttpRequests(
-                authz -> authz.requestMatchers(new AntPathRequestMatcher(contextPath + "/v1/**")).permitAll());
-        http.authorizeHttpRequests(
-                authz -> authz.requestMatchers(new AntPathRequestMatcher(contextPath + "/**")).permitAll())
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
-
-        http.addFilterBefore(saamfiAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
-        return http.build();
-    }
-
-    @Bean
-    public CorsConfigurationSource corsConfigurationSource() {
-        return request -> {
-            String origin = request.getHeader(HttpHeaders.ORIGIN);
-            Pattern pattern = Pattern.compile("https://([A-Za-z0-9-]+)\\.jcmunoz\\.net");
-            CorsConfiguration configuration = new CorsConfiguration();
-
-            if (origin == null) {
-                return configuration;
-            }
-
-            if (!pattern.matcher(origin).matches()) {
-                return configuration;
-            }
-
-            configuration.setAllowedOrigins(Collections.singletonList(origin));
-            configuration.setAllowedMethods(Collections.singletonList("*"));
-            configuration.setAllowedHeaders(Collections.singletonList("*"));
-            return configuration;
-
-        };
-    }
+                };
+        }
 
 }
