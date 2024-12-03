@@ -16,3 +16,28 @@ scrape_configs:
           job: "outcurr-app"
           __path__: /var/log/outcome-curr-mgmt/*.log
     pipeline_stages:
+      - json:
+          expressions:
+            timestamp: timestamp
+            level: level
+            logger: logger
+            thread: thread
+            message: message
+            exception: exception
+            operation: operation
+            facultyId: facultyId
+            facultyName: facultyName
+            acadProgCurriculumId: acadProgCurriculumId
+            status: status
+            errorType: errorType
+      - labels:
+          level:
+          logger:
+          operation:
+          status:
+          errorType:
+      - timestamp:
+          source: timestamp
+          format: RFC3339Nano
+      - labels:
+          level:

@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 <configuration>
     <include resource="org/springframework/boot/logging/logback/base.xml"/>
 
@@ -23,3 +24,25 @@
         <appender-ref ref="CONSOLE"/>
     </root>
 </configuration>
+=======
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <appender name="jsonConsoleAppender" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="net.logstash.logback.encoder.LogstashEncoder"/>
+    </appender>
+
+    <appender name="jsonFileAppender" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>/app/logs/application.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>/app/logs/application.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <maxHistory>7</maxHistory>
+        </rollingPolicy>
+        <encoder class="net.logstash.logback.encoder.LogstashEncoder"/>
+    </appender>
+
+    <root level="INFO">
+        <appender-ref ref="jsonConsoleAppender"/>
+        <appender-ref ref="jsonFileAppender"/>
+    </root>
+</configuration>
+>>>>>>> 34859dd2f40d4816f89d6612e1fc3ade8fcc4d72
