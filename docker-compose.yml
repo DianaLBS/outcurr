@@ -99,7 +99,7 @@ services:
       - monitoring
     environment:
       - SPRING_PROFILES_ACTIVE=prod
-      - MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE=*
+      - MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE=prometheus, health, info #Endpoints necesarios
       - MANAGEMENT_METRICS_EXPORT_PROMETHEUS_ENABLED=true
       - LOGGING_FILE_NAME=/app/logs/application.log
 

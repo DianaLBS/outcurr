@@ -2,6 +2,7 @@ package co.edu.icesi.dev.outcome_curr_mgmt.testing.system;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 @SpringBootApplication
 public class OutcomeCurrMgmtTestApplication {

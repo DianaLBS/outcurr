@@ -23,49 +23,38 @@ import java.util.regex.Pattern;
 @EnableMethodSecurity
 public class SecurityConfig {
 
-    private final SaamfiAuthenticationFilter saamfiAuthenticationFilter;
+        @Bean
+        public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+                http
+                                .csrf(AbstractHttpConfigurer::disable)
+                                .cors(AbstractHttpConfigurer::disable) // Deshabilitar CORS para pruebas
+                                .authorizeHttpRequests(authz -> authz.anyRequest().permitAll())
+                                .sessionManagement(session -> session
+                                                .sessionCreationPolicy(SessionCreationPolicy.STATELESS));
+                return http.build();
+        }
 
-    public SecurityConfig(SaamfiAuthenticationFilter saamfiAuthenticationFilter) {
-        this.saamfiAuthenticationFilter = saamfiAuthenticationFilter;
-    }
+        @Bean
+        public CorsConfigurationSource corsConfigurationSource() {
+                return request -> {
+                        String origin = request.getHeader(HttpHeaders.ORIGIN);
+                        Pattern pattern = Pattern.compile("https://([A-Za-z0-9-]+)\\.jcmunoz\\.net");
+                        CorsConfiguration configuration = new CorsConfiguration();
 
-    @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http.csrf(AbstractHttpConfigurer::disable);
-        http.cors(cors -> cors.configurationSource(corsConfigurationSource()));
-        http.headers(headers -> headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::disable));
-        http.authorizeHttpRequests(authz -> authz.requestMatchers(new AntPathRequestMatcher("/h2-console/**")).permitAll());
-        http.authorizeHttpRequests(authz -> authz.requestMatchers(new AntPathRequestMatcher("/v1/auth/users/login")).permitAll());
-        http.authorizeHttpRequests(authz -> authz.requestMatchers(new AntPathRequestMatcher("/swagger-ui/**")).permitAll());
-        http.authorizeHttpRequests(authz -> authz.requestMatchers(new AntPathRequestMatcher("/v3/api-docs/**")).permitAll());
-        http.authorizeHttpRequests(authz -> authz.requestMatchers(new AntPathRequestMatcher("/v1/**")).authenticated());
-        http.authorizeHttpRequests(authz -> authz.requestMatchers(new AntPathRequestMatcher("/**")).authenticated())
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
-        http.addFilterBefore(saamfiAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
-        return http.build();
-    }
+                        if (origin == null) {
+                                return configuration;
+                        }
 
-    @Bean
-    public CorsConfigurationSource corsConfigurationSource() {
-        return request -> {
-            String origin = request.getHeader(HttpHeaders.ORIGIN);
-            Pattern pattern = Pattern.compile("https://([A-Za-z0-9-]+)\\.jcmunoz\\.net");
-            CorsConfiguration configuration = new CorsConfiguration();
+                        if (!pattern.matcher(origin).matches()) {
+                                return configuration;
+                        }
 
-            if (origin == null) {
-                return configuration;
-            }
+                        configuration.setAllowedOrigins(Collections.singletonList(origin));
+                        configuration.setAllowedMethods(Collections.singletonList("*"));
+                        configuration.setAllowedHeaders(Collections.singletonList("*"));
+                        return configuration;
 
-            if (!pattern.matcher(origin).matches()){
-                return configuration;
-            }
-
-            configuration.setAllowedOrigins(Collections.singletonList(origin));
-            configuration.setAllowedMethods(Collections.singletonList("*"));
-            configuration.setAllowedHeaders(Collections.singletonList("*"));
-            return configuration;
-
-        };
-    }
+                };
+        }
 
 }

@@ -30,3 +30,37 @@ This generated password is for development use only. Your security configuration
 2024-12-03T01:15:50.436Z  INFO 1 --- [main] o.s.s.web.DefaultSecurityFilterChain     : Will secure any request with [org.springframework.security.web.session.DisableEncodeUrlFilter@557ed49a, org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter@2d839402, org.springframework.security.web.context.SecurityContextHolderFilter@17856f0, org.springframework.security.web.header.HeaderWriterFilter@640890bc, org.springframework.web.filter.CorsFilter@2c2c1790, org.springframework.security.web.authentication.logout.LogoutFilter@7ae88df1, co.edu.icesi.dev.outcome_curr_mgmt.saamfi.filters.SaamfiAuthenticationFilter@53ac845a, org.springframework.security.web.savedrequest.RequestCacheAwareFilter@652cb87d, org.springframework.security.web.servletapi.SecurityContextHolderAwareRequestFilter@5304cee, org.springframework.security.web.authentication.AnonymousAuthenticationFilter@645a9649, org.springframework.security.web.session.SessionManagementFilter@71f9f8ba, org.springframework.security.web.access.ExceptionTranslationFilter@5710f755, org.springframework.security.web.access.intercept.AuthorizationFilter@28fa0ff8]
 2024-12-03T01:15:51.839Z  INFO 1 --- [main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port(s): 9092 (http) with context path '/outcurrapi'
 2024-12-03T01:15:51.873Z  INFO 1 --- [main] c.e.i.d.o.OutcomeCurrMgmtApplication     : Started OutcomeCurrMgmtApplication in 25.689 seconds (process running for 28.036)
+2024-12-03T01:59:07.763Z  INFO 1 --- [SpringApplicationShutdownHook] j.LocalContainerEntityManagerFactoryBean : Closing JPA EntityManagerFactory for persistence unit 'default'
+2024-12-03T01:59:08.214Z  INFO 1 --- [SpringApplicationShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown initiated...
+2024-12-03T01:59:08.266Z  INFO 1 --- [SpringApplicationShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown completed.
+2024-12-03T01:59:20.250Z  INFO 1 --- [main] c.e.i.d.o.OutcomeCurrMgmtApplication     : Starting OutcomeCurrMgmtApplication v1.0-SNAPSHOT using Java 17.0.13 with PID 1 (/app/outcome-curr-mgmt.jar started by root in /app)
+2024-12-03T01:59:20.268Z  INFO 1 --- [main] c.e.i.d.o.OutcomeCurrMgmtApplication     : The following 1 profile is active: "prod"
+2024-12-03T01:59:26.595Z  INFO 1 --- [main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2024-12-03T01:59:27.576Z  INFO 1 --- [main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 942 ms. Found 41 JPA repository interfaces.
+2024-12-03T01:59:30.854Z  INFO 1 --- [main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port(s): 9092 (http)
+2024-12-03T01:59:30.898Z  INFO 1 --- [main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2024-12-03T01:59:30.901Z  INFO 1 --- [main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.15]
+2024-12-03T01:59:31.249Z  INFO 1 --- [main] o.a.c.c.C.[.[localhost].[/outcurrapi]    : Initializing Spring embedded WebApplicationContext
+2024-12-03T01:59:31.252Z  INFO 1 --- [main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 10710 ms
+2024-12-03T01:59:31.724Z  INFO 1 --- [main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2024-12-03T01:59:32.752Z  INFO 1 --- [main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection conn0: url=jdbc:h2:mem:testdb user=ADMIN
+2024-12-03T01:59:32.758Z  INFO 1 --- [main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2024-12-03T01:59:32.789Z  INFO 1 --- [main] o.s.b.a.h2.H2ConsoleAutoConfiguration    : H2 console available at '/h2-console'. Database available at 'jdbc:h2:mem:testdb'
+2024-12-03T01:59:34.746Z DEBUG 1 --- [main] c.e.i.d.o.s.f.SaamfiAuthenticationFilter : Filter 'saamfiAuthenticationFilter' configured for use
+2024-12-03T01:59:34.991Z  INFO 1 --- [main] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+2024-12-03T01:59:35.127Z  INFO 1 --- [main] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 6.2.13.Final
+2024-12-03T01:59:35.133Z  INFO 1 --- [main] org.hibernate.cfg.Environment            : HHH000406: Using bytecode reflection optimizer
+2024-12-03T01:59:35.990Z  INFO 1 --- [main] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2024-12-03T01:59:36.183Z  WARN 1 --- [main] org.hibernate.orm.deprecation            : HHH90000025: H2Dialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+2024-12-03T01:59:44.412Z  INFO 1 --- [main] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2024-12-03T01:59:45.781Z  INFO 1 --- [main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2024-12-03T01:59:48.134Z  INFO 1 --- [main] o.s.d.j.r.query.QueryEnhancerFactory     : Hibernate is in classpath; If applicable, HQL parser will be used.
+2024-12-03T01:59:51.392Z  WARN 1 --- [main] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2024-12-03T01:59:51.447Z  WARN 1 --- [main] .s.s.UserDetailsServiceAutoConfiguration : 
+
+Using generated security password: 3583d8ae-5de1-4648-8391-4b4ae1088b06
+
+This generated password is for development use only. Your security configuration must be updated before running your application in production.
+
+2024-12-03T01:59:51.968Z  INFO 1 --- [main] o.s.s.web.DefaultSecurityFilterChain     : Will secure any request with [org.springframework.security.web.session.DisableEncodeUrlFilter@3554de46, org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter@70dbd79f, org.springframework.security.web.context.SecurityContextHolderFilter@fb79241, org.springframework.security.web.header.HeaderWriterFilter@5935ade6, org.springframework.security.web.authentication.logout.LogoutFilter@2623ad23, org.springframework.security.web.savedrequest.RequestCacheAwareFilter@1f81b020, org.springframework.security.web.servletapi.SecurityContextHolderAwareRequestFilter@65dff28b, org.springframework.security.web.authentication.AnonymousAuthenticationFilter@3ec8c874, org.springframework.security.web.session.SessionManagementFilter@f64f47a, org.springframework.security.web.access.ExceptionTranslationFilter@54d3b4fe, org.springframework.security.web.access.intercept.AuthorizationFilter@5ae3f536]
+2024-12-03T01:59:54.205Z  INFO 1 --- [main] o.s.b.a.e.web.EndpointLinksResolver      : Exposing 3 endpoint(s) beneath base path '/actuator'
