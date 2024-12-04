@@ -22,15 +22,50 @@ import java.util.regex.Pattern;
 @EnableWebSecurity
 @EnableMethodSecurity
 public class SecurityConfig {
+        private final SaamfiAuthenticationFilter saamfiAuthenticationFilter;
+
+        public SecurityConfig(SaamfiAuthenticationFilter saamfiAuthenticationFilter) {
+                this.saamfiAuthenticationFilter = saamfiAuthenticationFilter;
+        }
 
         @Bean
         public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-                http
-                                .csrf(AbstractHttpConfigurer::disable)
-                                .cors(AbstractHttpConfigurer::disable) // Deshabilitar CORS para pruebas
-                                .authorizeHttpRequests(authz -> authz.anyRequest().permitAll())
+
+                http.csrf(csrf -> csrf.disable());
+                http.csrf(AbstractHttpConfigurer::disable);
+                http.cors(cors -> cors.configurationSource(corsConfigurationSource()));
+                http.headers(headers -> headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::disable));
+
+                String contextPath = "/actuator/";
+
+                http.authorizeHttpRequests(authz -> authz
+                                .requestMatchers(new AntPathRequestMatcher(contextPath + "/actuator/**")).permitAll());
+
+                http.authorizeHttpRequests(
+                                authz -> authz.requestMatchers(new AntPathRequestMatcher("/actuator/**")).permitAll());
+                http.authorizeHttpRequests(authz -> authz.requestMatchers(new AntPathRequestMatcher("/outcurrapi/**"))
+                                .permitAll());
+                http.authorizeHttpRequests(authz -> authz
+                                .requestMatchers(new AntPathRequestMatcher(contextPath + "/h2-console/**"))
+                                .permitAll());
+                http.authorizeHttpRequests(authz -> authz
+                                .requestMatchers(new AntPathRequestMatcher(contextPath + "/v1/auth/users/login"))
+                                .permitAll());
+                http.authorizeHttpRequests(authz -> authz
+                                .requestMatchers(new AntPathRequestMatcher(contextPath + "/swagger-ui/**"))
+                                .permitAll());
+                http.authorizeHttpRequests(authz -> authz
+                                .requestMatchers(new AntPathRequestMatcher(contextPath + "/v3/api-docs/**"))
+                                .permitAll());
+
+                http.authorizeHttpRequests(authz -> authz
+                                .requestMatchers(new AntPathRequestMatcher(contextPath + "/v1/**")).permitAll());
+                http.authorizeHttpRequests(authz -> authz
+                                .requestMatchers(new AntPathRequestMatcher(contextPath + "/**")).permitAll())
                                 .sessionManagement(session -> session
                                                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS));
+
+                http.addFilterBefore(saamfiAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
                 return http.build();
         }
 
